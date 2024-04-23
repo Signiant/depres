@@ -35,8 +35,8 @@ from . import fetch, cache
 
 CACHE_ROOT_KEYS = ["c", "with-cache"]
 HELP_KEYS = ["h", "help"]
+# module_logger = logging.getLogger('umpire.deploy')
 logger = logging.getLogger(__name__)
-
 ## The following code
 
 ## The following code backports an islink solution for windows in python 2.7.x
@@ -81,6 +81,8 @@ class DeploymentModule(module.AsyncModule):
 
     #Deployment File
     deployment_file = None
+
+    log_level = None
 
     def help(self):
         print(self.help_text)
@@ -138,13 +140,14 @@ class DeploymentModule(module.AsyncModule):
                         dst.write(data)
                         # Update progress bar with size of chunk
                         pbar.update(len(data))
+        logger.debug(f"Copy {src_file} DONE")
 
 
     def copy_dir_with_progress(self, src, dst):
         total_size = sum(
             os.path.getsize(os.path.join(root, filename)) for root, _, filenames in os.walk(src) for filename in
             filenames)
-        with tqdm(total=total_size, unit='B', unit_scale=True, unit_divisor=1024, desc='Copying') as pbar:
+        with tqdm(total=total_size, unit='B', unit_scale=True, unit_divisor=1024, desc=f'Copying to {dst}') as pbar:
             for root, _, filenames in os.walk(src):
                 for filename in filenames:
                     src_file = os.path.join(root, filename)
@@ -152,9 +155,11 @@ class DeploymentModule(module.AsyncModule):
                     os.makedirs(os.path.dirname(dst_file), exist_ok=True)
                     shutil.copy(src_file, dst_file)
                     pbar.update(os.path.getsize(src_file))
+        logger.debug(f"Copy {src} DONE")
 
     def run(self,kwargs):
         logger.debug("Running Deploy")
+        logger.debug(f"loglevel {self.log_level}")
         try:
             with open(self.deployment_file) as f:
                 data = json.load(f)
@@ -207,6 +212,7 @@ class DeploymentModule(module.AsyncModule):
                 fetcher.dependency_unpack = unpack
                 fetcher.cache_root = self.cache_root
                 fetcher.keep_updated = keep_updated
+                fetcher.log_level = self.log_level
                 # fetcher.DEBUG = self.DEBUG
                 #TODO: Figure out how to move this out of deploy
                 try:
@@ -290,7 +296,6 @@ class DeploymentModule(module.AsyncModule):
             else:
                 logger.debug("Copying with file copy")
                 self.copy_file_with_progress(entry, destination_file)
-                # self.copy_with_progress(entry, destination_file)
         # except WindowsError as e:
         #     logger.debug(f"{traceback.print_exc()}")
         #     raise DeploymentError(fetcher.format_entry_name() + ": Unable to create symlink. Ensure you are running Umpire as an administrator or otherwise enabled your user to create symlinks. Contact your system administrator if this problem persists.")

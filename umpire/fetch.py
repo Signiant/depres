@@ -2,8 +2,6 @@
 
 import sys, os, urllib, time, traceback
 from . import cache, config
-# from cache import LocalCache
-# from config import default_host_id
 from multiprocessing import Value
 from maestro.core import module
 from maestro.aws import s3
@@ -59,9 +57,14 @@ class FetchModule(module.AsyncModule):
     #Are we going to check if this dependency has changed in the remote?
     keep_updated = None
 
-    def run(self,kwargs):
-        logger.debug("Running Fetch")
+    log_level=None
 
+    def run(self,kwargs):
+        logger = logging
+        FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+        logger.basicConfig(format=FORMAT, stream=sys.stdout, level=self.log_level)
+        # print("Running Fetch")
+        logger.debug("Running Fetch")
         #Verify argument validity
         self.__verify_arguments__()
 
@@ -71,8 +74,10 @@ class FetchModule(module.AsyncModule):
         #Get cache path
         cache_path = os.path.join(self.cache_root, cache_name)
 
+        logger.debug(f"Cache path: {cache_path}")
+
         #Get cache object (will raise an exception if it doesn't exist)
-        cache_obj = cache.LocalCache(cache_path, host_id=config.default_host_id)
+        cache_obj = cache.LocalCache(cache_path, host_id=config.default_host_id, log_level=self.log_level)
 
         full_url = s3.join_s3_url(self.dependency_repo, self.dependency_platform, self.dependency_name, self.dependency_version)
 
@@ -86,17 +91,16 @@ class FetchModule(module.AsyncModule):
         else:
             state = EntryState.CACHE
 
-        #Verify Remote MD5
+        #Verify Remote sha256 if updating
         if self.keep_updated and state == EntryState.CACHE:
-            #TODO: Kinda hacky, but the maestro underlying code needs some refactoring. This will do what I want without changing it
             bucket,prefix = s3.parse_s3_url(full_url)
             checksums = list()
             try:
-                for file in s3.find_files(bucket,prefix,anonymous=False):
+                for file in s3.find_files(bucket, prefix, anonymous=False, sha256=True ):
                     checksums.append(file[1])
             except:
                 logger.debug(f"{traceback.print_exc()}")
-                for file in s3.find_files(bucket,prefix,anonymous=True):
+                for file in s3.find_files(bucket, prefix, anonymous=True, sha256=True ):
                     checksums.append(file[1])
 
             if entry.md5 not in checksums:
@@ -112,35 +116,41 @@ class FetchModule(module.AsyncModule):
 
             logger.info(self.format_entry_name() + ": Downloading " + full_url)
 
+            # for file in s3.find_files(bucket, prefix, anonymous=True):
+            #     self.s3_download(bucket, prefix + '/' , os.path.join(self.cache_root, "downloading") + os.sep, s3_client = boto3.client('s3')):
             #Get Downloader
             downloader = s3.AsyncS3Downloader(None)
 
             #Set Downloader arguments
             downloader.source_url = full_url+"/"
+            downloader.sha256 = True
             downloader.destination_path = os.path.join(self.cache_root, "downloading") + os.sep
             downloader.start()
 
             #Wait for downloader to finish #TODO: Do something with the reported progress
-            while downloader.status != module.DONE:
+            while downloader.status != 2:
                 time.sleep(0.5)
 
             #Check for an exception, if so bubble it up
             if downloader.exception is not None:
-                raise downloader.exception
-
+                logger.error(f"Exception!!! {downloader.exception}")
+                # raise downloader.exception
+                sys.exit(1)
             logger.info(self.format_entry_name() + ": Download complete")
-            logger.info(downloader.result)
+            logger.debug(f"Result: {downloader.result}")
             if downloader.result is None or len(downloader.result) == 0:
                 raise EntryError(self.format_entry_name() + ": Unable to find remote entry '" + full_url + "'")
 
             #Iterate of the result (downloaded files)
             for item, checksum in downloader.result:
-                local_file_checksum = mfile.md5_checksum(item)
+                local_file_checksum = mfile.sha256_checksum(item, checksum)
+                logging.debug(f"local_file: {local_file_checksum} checksum: {checksum}")
                 if checksum != local_file_checksum:
-                    logger.info(self.format_entry_name() + ": WARNING: Downloaded file does not match the checksum on the server")
-                    logger.info(self.format_entry_name() + ": WARNING: local:\t" + str(local_file_checksum))
-                    logger.info(self.format_entry_name() + ": WARNING: server:\t" + str(checksum))
+                    logger.warning(self.format_entry_name() + ": WARNING: Downloaded file does not match the checksum on the server")
+                    logger.warning(self.format_entry_name() + ": WARNING: local:\t" + str(local_file_checksum))
+                    logger.warning(self.format_entry_name() + ": WARNING: server:\t" + str(checksum))
                 if self.dependency_unpack:
+                    print(self.format_entry_name() + ": Unpacking...")
                     logger.info (self.format_entry_name() + ": Unpacking...")
                 #Put will unlock
                 cache_obj.put(item,self.dependency_platform, self.dependency_name, self.dependency_version, unpack_bol=self.dependency_unpack, checksum=checksum)

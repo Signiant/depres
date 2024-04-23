@@ -6,7 +6,7 @@ import logging.handlers
 import logging.config
 import argparse
 
-__version__ = "0.5.5"
+__version__ = "0.6.5"
 
 import sys,os
 
@@ -59,10 +59,10 @@ class Umpire(execute.ModuleExecuter):
             print('DEBUG logging requested')
             log_level = logging.DEBUG
             self.debug = True
-
         logger = logging
         FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
         logger.basicConfig(format=FORMAT, stream=sys.stdout, level=log_level)
+
 
         if args.clear:
             import shutil
@@ -90,7 +90,7 @@ class Umpire(execute.ModuleExecuter):
         else:
             parser.print_help()
             sys.exit(0)
-        logger.info("Welcome!")
+        logger.info("Beginning Umpire deploy")
         self.register_dependencies()
         if not self.skip_update:
             updater = self.getObject("update")
@@ -119,15 +119,12 @@ class Umpire(execute.ModuleExecuter):
 
         #Get the instance of our first module
         deployer = self.getObject("deploy")
-
-        #TODO: Fix to use just RUN
         deployer.cache_root = get_umpire_root()
-
         deployer.deployment_file = self.deployment_file
 
-        deployer.DEBUG = self.debug
-
+        deployer.log_level = log_level
         self.exit_code = deployer.run(kwargs)
+        logger.info("Completed")
 
 def get_umpire_root():
     hardcoded_root = "./umpire_tmp"
