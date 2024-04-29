@@ -34,7 +34,6 @@ class UnpackModule(module.AsyncModule):
     def untar_gzip(self):
         with tarfile.open(name=self.file_path) as tar:
             for member in tqdm(iterable=tar.getmembers(), desc=f'Extracting {self.file_path}', total=len(tar.getmembers())):
-            # for member in tqdm(tar.getmembers(), desc=f'Extracting {self.file_path}'):
                 tar.extract(member=member, path=self.destination_path)
 
     def unzip(self):

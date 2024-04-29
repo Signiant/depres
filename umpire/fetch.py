@@ -144,7 +144,7 @@ class FetchModule(module.AsyncModule):
             #Iterate of the result (downloaded files)
             for item, checksum in downloader.result:
                 local_file_checksum = mfile.sha256_checksum(item, checksum)
-                logging.debug(f"local_file: {local_file_checksum} checksum: {checksum}")
+                logging.debug(f"Checksum local_file: {local_file_checksum} remote: {checksum}")
                 if checksum != local_file_checksum:
                     logger.warning(self.format_entry_name() + ": WARNING: Downloaded file does not match the checksum on the server")
                     logger.warning(self.format_entry_name() + ": WARNING: local:\t" + str(local_file_checksum))
