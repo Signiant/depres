@@ -18,7 +18,6 @@ setup(name='Umpire',
       license='MIT',
       install_requires=[
           'MaestroOps>=0.9',
-          'boto3>=1.34.35',
           'tqdm>=4.66.2'
       ],
       entry_points = {
