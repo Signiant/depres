@@ -18,7 +18,7 @@ setup(name='Umpire',
       license='MIT',
       install_requires=[
           'MaestroOps>=0.9',
-          'tqdm>=4.66.2'
+          'tqdm>=4.64.1'
       ],
       entry_points = {
           'console_scripts': [
