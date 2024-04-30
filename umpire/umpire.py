@@ -137,3 +137,6 @@ def get_umpire_root():
         if not os.path.exists(hardcoded_root):
             os.makedirs(hardcoded_root)
         return hardcoded_root
+
+if __name__ == '__main__':
+    entry()
