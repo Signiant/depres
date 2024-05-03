@@ -63,7 +63,6 @@ class FetchModule(module.AsyncModule):
         logger = logging
         FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
         logger.basicConfig(format=FORMAT, stream=sys.stdout, level=self.log_level)
-        # print("Running Fetch")
         logger.debug("Running Fetch")
         #Verify argument validity
         self.__verify_arguments__()
@@ -116,8 +115,6 @@ class FetchModule(module.AsyncModule):
 
             logger.info(self.format_entry_name() + ": Downloading " + full_url)
 
-            # for file in s3.find_files(bucket, prefix, anonymous=True):
-            #     self.s3_download(bucket, prefix + '/' , os.path.join(self.cache_root, "downloading") + os.sep, s3_client = boto3.client('s3')):
             #Get Downloader
             downloader = s3.AsyncS3Downloader(None)
 
@@ -144,7 +141,7 @@ class FetchModule(module.AsyncModule):
             #Iterate of the result (downloaded files)
             for item, checksum in downloader.result:
                 local_file_checksum = mfile.sha256_checksum(item, checksum)
-                logging.debug(f"Checksum local_file: {local_file_checksum} remote: {checksum}")
+                logging.debug(f"sha 256 checksum local_file: {local_file_checksum} remote: {checksum}")
                 if checksum != local_file_checksum:
                     logger.warning(self.format_entry_name() + ": WARNING: Downloaded file does not match the checksum on the server")
                     logger.warning(self.format_entry_name() + ": WARNING: local:\t" + str(local_file_checksum))

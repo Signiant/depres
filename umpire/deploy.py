@@ -35,7 +35,6 @@ from . import fetch, cache
 
 CACHE_ROOT_KEYS = ["c", "with-cache"]
 HELP_KEYS = ["h", "help"]
-# module_logger = logging.getLogger('umpire.deploy')
 logger = logging.getLogger(__name__)
 ## The following code
 
@@ -296,9 +295,9 @@ class DeploymentModule(module.AsyncModule):
             else:
                 logger.debug("Copying with file copy")
                 self.copy_file_with_progress(entry, destination_file)
-        # except WindowsError as e:
-        #     logger.debug(f"{traceback.print_exc()}")
-        #     raise DeploymentError(fetcher.format_entry_name() + ": Unable to create symlink. Ensure you are running Umpire as an administrator or otherwise enabled your user to create symlinks. Contact your system administrator if this problem persists.")
+        except WindowsError as e:
+            logger.debug(f"{traceback.print_exc()}")
+            raise DeploymentError(fetcher.format_entry_name() + ": Unable to create symlink. Ensure you are running Umpire as an administrator or otherwise enabled your user to create symlinks. Contact your system administrator if this problem persists.")
         except OSError as e:
             logger.debug(f"{traceback.print_exc()}")
             raise DeploymentError(fetcher.format_entry_name() + ": Unable to deploy: " + str(e))
