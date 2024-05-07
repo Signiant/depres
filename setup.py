@@ -7,7 +7,7 @@ from os import path
 #     long_description = f.read()
 
 setup(name='Umpire',
-      version='0.6.5',
+      version='0.7.0',
       description='Generic dependency resolver.',
       long_description='',
       long_description_content_type='text/markdown',
@@ -16,7 +16,10 @@ setup(name='Umpire',
       url='https://www.signiant.com',
       packages=find_packages(),
       license='MIT',
-      install_requires=['MaestroOps>=0.8.8,<0.9'],
+      install_requires=[
+          'MaestroOps>=0.9',
+          'tqdm>=4.64.1'
+      ],
       entry_points = {
           'console_scripts': [
               'umpire = umpire.umpire:entry'

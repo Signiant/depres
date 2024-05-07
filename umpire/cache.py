@@ -11,6 +11,8 @@ import maestro.core.module
 from . import unpack
 from maestro.tools.os_tools import check_pid
 from . import config
+import logging, sys
+logger = logging.getLogger(__name__)
 
 # Cache constants
 CONFIG_FILENAME = config.CONFIG_FILENAME
@@ -139,6 +141,7 @@ def read_entry(file_location):
 def write_entry(entry):
 
         ## Start creating config
+        logging.debug("Creating entry")
         config = configparser.SafeConfigParser()
         config_path = os.path.join(entry.path, CONFIG_FILENAME)
         config.add_section(CONFIG_ENTRY_SECTION_NAME)
@@ -185,7 +188,7 @@ class LocalCache(object):
     lock_timeout = None
 
     #Verifies local existance
-    def __init__(self, cache_root, lock_timeout = 1800, host_id="localhost"):
+    def __init__(self, cache_root, lock_timeout = 1800, host_id="localhost", log_level=logging.INFO):
         if not os.path.exists(cache_root):
             raise CacheError("The path '" + str(cache_root) + "' does not contain a valid umpire cache.")
 
@@ -193,6 +196,13 @@ class LocalCache(object):
         self.lock_timeout = lock_timeout
         self.host_id = host_id
         self.settings_file = os.path.join(cache_root,CONFIG_FILENAME)
+
+        #set logging
+        logger = logging
+        FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+        logger.basicConfig(format=FORMAT, stream=sys.stdout, level=log_level)
+
+        logging.debug("Running Caching")
 
         if not os.path.exists(self.settings_file):
             raise CacheError("The path '" + str(cache_root) + "' does not appear to be a valid umpire cache")
