@@ -49,7 +49,7 @@ class Umpire(execute.ModuleExecuter):
         parser.add_argument('-r', '--repair-cache', help='Removes lock files from the cache', dest='repair', action='store_true', required=False)
         parser.add_argument('-v', '--version', help='Displays the current version of Umpire', dest='version',  action='store_true', required=False)
         parser.add_argument('UMPIRE_FILE', help='Umpire json manifest file', nargs='?')
-        parser.add_argument('-d', '--debpug', help='Run without creating keys or updating keys', dest='debug', action='store_true',
+        parser.add_argument('-d', '--debug', help='Run without creating keys or updating keys', dest='debug', action='store_true',
                             required=False)
         args = parser.parse_args()
 
