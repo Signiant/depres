@@ -7,7 +7,7 @@ from os import path
 #     long_description = f.read()
 
 setup(name='Umpire',
-      version='0.8.0',
+      version='0.8.1',
       description='Generic dependency resolver.',
       long_description='',
       long_description_content_type='text/markdown',

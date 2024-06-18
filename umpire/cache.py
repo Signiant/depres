@@ -72,7 +72,7 @@ def read_entry(file_location):
         raise EntryError("Unable to find entry file under: " + file_location)
 
     #Get parser
-    parser = configparser.SafeConfigParser()
+    parser = configparser.ConfigParser()
     try:#Read
         config = parser.read(file_location)
     except configparser.ParsingError:
@@ -142,7 +142,7 @@ def write_entry(entry):
 
         ## Start creating config
         logging.debug("Creating entry")
-        config = configparser.SafeConfigParser()
+        config = configparser.ConfigParser()
         config_path = os.path.join(entry.path, CONFIG_FILENAME)
         config.add_section(CONFIG_ENTRY_SECTION_NAME)
 
@@ -209,7 +209,7 @@ class LocalCache(object):
         config = None
 
         #Get parser
-        parser = configparser.SafeConfigParser()
+        parser = configparser.ConfigParser()
         try:#Read
             config = parser.read(self.settings_file)
         except configparser.ParsingError:
