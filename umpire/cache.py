@@ -44,7 +44,7 @@ def create_local_cache(local_path, remote_url):
         pass #Directories exist
 
     ## Start creating config
-    config = configparser.SafeConfigParser()
+    config = configparser.ConfigParser()
     config.add_section(CONFIG_REPO_SECTION_NAME)
 
     config.set(CONFIG_REPO_SECTION_NAME, "remote_url", remote_url)
